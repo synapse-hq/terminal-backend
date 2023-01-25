@@ -13,5 +13,5 @@ datasource db {
 
 model Payload {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  request Json
+  rawRequest Json
 }

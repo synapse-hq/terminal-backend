@@ -27,17 +27,32 @@ app.use(express.static('build'));
 
 app.use(vhost(domain, rootDomainRoutes))
     //  .use(vhost('www.' + domain, rootDomainRoutes))
-    .use(vhost('localhost', rootDomainRoutes))
-    .use(vhost('*.' + domain, subDomainRoutes));
+    // ngrok url used below for testing
+    .use(vhost("dcbb-108-243-22-76.ngrok.io", subDomainRoutes));
 
 async function main() {
-  const user = await pg.user.create({
-    data: {
-      username: 'synapse',
-      passwordHash: 'asjldfnsdafde',
-      createdAt: new Date(),
-    },
-  });
+
+  // const users = await pg.user.findMany();
+  // console.log(users)
+
+  // const buckets = await pg.bucket.findMany();
+  // console.log(buckets)
+
+  // await pg.bucket.create({
+  //   data: {
+  //     userId: 1,
+  //     deleted: false,
+  //     subdomain: "6d3a-108-243-22-76",
+  //     createdAt: new Date(),
+  //   }
+  // })
+  // const user = await pg.user.create({
+  //   data: {
+  //     username: 'synapse',
+  //     passwordHash: 'asjldfnsdafde',
+  //     createdAt: new Date(),
+  //   },
+  // });
 
   // console.log(user);
 
@@ -56,10 +71,10 @@ async function main() {
 
 }
 
-// main().catch(e => console.error(e.message))
-//       .finally(async () => {
-//         await pg.$disconnect();
-//         await mongo.$disconnect();
-//       })
+main().catch(e => console.error(e.message))
+      .finally(async () => {
+        await pg.$disconnect();
+        await mongo.$disconnect();
+      })
 
 app.listen(port, () => console.log('Server listening on port '+ port));

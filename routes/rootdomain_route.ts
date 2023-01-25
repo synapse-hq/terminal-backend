@@ -101,6 +101,7 @@ router.delete('/:username', async (req: Request, res: Response) => {
 router.get('/', async (req, res, next) => {
   let allUsers = await pg.user.findMany();
   res.send(allUsers)
+  // res.send('hello')
 
 });
 
