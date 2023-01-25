@@ -1,0 +1,25 @@
+POST http://localhost:5001/new_user HTTP/1.1
+Content-Type: application/json
+
+{
+  "username": "synapse2",
+  "passwordHash": "asjldfnsdafde"
+}
+
+###
+POST http://localhost:5001/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "username": "synapseml",
+  "passwordHash": "asjldfnsdafde."
+}
+
+# POST http://localhost:5000/api/users HTTP/1.1
+# Content-Type: application/json
+
+# {
+#   "username": "first1",
+#   "password": "first1",
+#   "email": "first2.firs2@email.com"
+# }
