@@ -6,25 +6,22 @@ import { mongo } from '../src/db'
 
 
 router.use(async (req: Request, res: Response, next) => {
-
-  console.log('request came through');
-
-
+  //console.log('request came through');
   // find bucket based on current subdomain (prepended part)
-  // const hostname = req.hostname.split('.')[0]
-  // const bucket = await pg.bucket.findFirst({
+  const hostname = req.hostname.split('.')[0]
+  const bucket = await pg.bucket.findFirst({
     
-  //   where: {
-  //     subdomain: hostname,
-  //   }    
-  // });
+    where: {
+      subdomain: hostname,
+    }    
+  });
 
-  // if (!bucket) {
-  //   res.status(404).send("No such bucket found")
-  //   return
-  // }
+  if (!bucket) {
+    res.status(404).send("No such bucket found")
+    return
+  }
 
-  // console.log(bucket)
+  console.log(bucket)
 
   const payload = await mongo.payload.create({
     data: {
@@ -39,12 +36,17 @@ router.use(async (req: Request, res: Response, next) => {
 
 
   // always returns empty string ??
-  const clientIp:string = Array.isArray(req.headers["x-forwarded-for"]) ?
-                          req.headers["x-forwarded-for"][0] : '';
+  let clientIp
+  const ipHeader = req.headers["x-forwarded-for"] 
+  if (!ipHeader) {
+    clientIp = ""
+  } else {
+    clientIp = Array.isArray(ipHeader) ? ipHeader[0] : ipHeader
+  }
 
   const obj = await pg.request.create ({ 
     data: {
-      bucketId: 1, // replace with bucket.id
+      bucketId: bucket.id, // replace with bucket.id
       createdAt: new Date(),
       method: req.method,
       path: req.path,
@@ -55,7 +57,7 @@ router.use(async (req: Request, res: Response, next) => {
   });
 
   console.log(obj)
-  
+  res.status(200).send("request received")
 });
 
 
