@@ -1,7 +1,6 @@
-import express, { Request, Response, Application } from "express";
+import express, { Request, Response } from "express";
 const router = express.Router();
 import { pg } from '../src/db'
-import { mongo } from '../src/db'
 const bcrypt = require("bcrypt")
 
 // user attempts to log in
@@ -10,7 +9,7 @@ type userReqBody = {
   passwordHash: string
 }
 
-router.post('/new_user', async (req : Request, res: Response) => {
+router.post('/new', async (req : Request, res: Response) => {
   console.log(req)
   const body : userReqBody = req.body
   const {username, passwordHash} = body;
@@ -97,16 +96,5 @@ router.delete('/:username', async (req: Request, res: Response) => {
   console.log(deleteUsers)
   res.json(deleteUsers)
 });
-
-// do we need this route?
-router.get('/', async (req, res, next) => {
-  let allUsers = await pg.user.findMany();
-  res.send(allUsers)
-  // res.send('hello')
-
-});
-
-// create a new bucket
-// router.post('/new_bucket', newBucket);
 
 export default router;
