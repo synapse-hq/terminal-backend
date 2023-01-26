@@ -4,7 +4,6 @@ import { pg } from '../src/db'
 import { mongo } from '../src/db'
 const bcrypt = require("bcrypt")
 
-
 // user attempts to log in
 type userReqBody = {
   username: string,
@@ -17,7 +16,7 @@ router.post('/new_user', async (req : Request, res: Response) => {
   const {username, passwordHash} = body;
 
   console.log(body, username)
-  let user = await pg.user.findFirst({
+  let user = await pg.user.findUnique({
     where: {
       username: username,
     },
@@ -61,7 +60,7 @@ router.post('/login', async (req : Request, res : Response) => {
   const {username, passwordHash} = {...body};
 
   // let data = await User.find({});
-  let user = await pg.user.findFirst({
+  let user = await pg.user.findUnique({
     where: {
       username: username,
     },
@@ -74,7 +73,8 @@ router.post('/login', async (req : Request, res : Response) => {
     if (validCredentials) {
       let buckets = await pg.bucket.findMany({
         where: {
-          userId: user.id
+          userId: user.id,
+          deleted: false
         }
       })
       res.send({username, buckets,})
@@ -86,6 +86,7 @@ router.post('/login', async (req : Request, res : Response) => {
   }
 });
 
+// delete a user account
 router.delete('/:username', async (req: Request, res: Response) => {
   const deleteUsers = await pg.user.delete({
     where: {
@@ -106,8 +107,6 @@ router.get('/', async (req, res, next) => {
 });
 
 // create a new bucket
-router.post('/', async (req, res) => {
-
-});
+// router.post('/new_bucket', newBucket);
 
 export default router;

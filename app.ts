@@ -16,6 +16,8 @@ const port = process.env.PORT;
 const domain:string = process.env.DOMAIN!;
 import rootDomainRoutes from './routes/rootdomain_route';
 import subDomainRoutes from './routes/subdomain_route';
+import binsRoutes from "./routes/binsRoutes";
+import requestsRoutes from "./routes/requestRoutes";
 
 const app: Application = express();
 const cors = require('cors');
@@ -24,11 +26,20 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('build'));
 
-
+console.log(domain)
 app.use(vhost(domain, rootDomainRoutes))
     //  .use(vhost('www.' + domain, rootDomainRoutes))
     // ngrok url used below for testing
-    .use(vhost("dcbb-108-243-22-76.ngrok.io", subDomainRoutes));
+    .use(vhost("*." + domain, subDomainRoutes));
+
+
+
+app.use("/api/bins", binsRoutes)
+app.use("/api/requests", requestsRoutes)
+
+app.use((req: Request, res: Response) => {
+  res.send("END OF ROUTES")
+})
 
 async function main() {
 
