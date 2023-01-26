@@ -1,5 +1,4 @@
 import express, { Request, Response, Router } from 'express';
-import { request } from 'http';
 const router:Router = express.Router();
 import { pg } from '../src/db'
 import { mongo } from '../src/db'
