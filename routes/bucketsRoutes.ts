@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import express, { Request, Response, Application } from "express";
 import { pg } from "../src/db"
 const router = express.Router()
@@ -16,9 +18,7 @@ function uuid(): string {
 }
 
 type newBinReq = {
-  username: string,
-  userId: number,
-  sessionActive: any // TBA
+  username: string
 }
 
 // get all buckets
@@ -30,15 +30,21 @@ router.get("/", async(req: Request, res: Response) => {
 // make a new bucket
 router.post("/", async(req: Request, res: Response) => {
   const body : newBinReq = req.body
-  const { username, userId, sessionActive } = body
+  const { user } = req.session
   // can pass user id or can use username to make a query to retrieve user id
+  
+  // let user = await pg.user.findUnique({
+  //   where: {
+  //     id: user.id,
+  //   },
+  // })
 
-  if (!sessionActive) {
-    res.status(404).json({error: "Must be signed in to do that"})
+  if (!user) {
+    res.status(404).json({error: "invalid user"})
     return
   }
 
-  const subdomain = username + uuid()
+  const subdomain = user.username + uuid()
   const existingBucket = await pg.bucket.findUnique({
     where: {
       subdomain,
@@ -53,7 +59,7 @@ router.post("/", async(req: Request, res: Response) => {
   try {
     const newBucket = await pg.bucket.create({
       data: {
-        userId,
+        userId: user.id,
         subdomain,
         deleted: false,
         createdAt: new Date()
@@ -103,22 +109,24 @@ router.get("/:username", async(req: Request, res: Response) => {
 router.delete("/:subdomain", async(req: Request, res: Response) => {
   const { subdomain } = req.params
 
-  console.log("DELETE", subdomain)
-  try {
-    const updated = await pg.bucket.update({
-      where: {
-        subdomain,
-      },
-      data: {
-        deleted: true
-      }
-    });
-    res.status(200).json({updated})
-  } catch {
-    res.status(400).json({error: "bucket does not exists"})
+  if (req.session.user) {
+    console.log("DELETE", subdomain)
+    try {
+      const updated = await pg.bucket.update({
+        where: {
+          subdomain,
+          userid: req.session.user.id
+        },
+        data: {
+          deleted: true
+        }
+      });
+      res.status(200).json({updated})
+    } catch {
+      res.status(400).json({error: "bucket does not exists"})
+    }    
   }
-
-
-
 })
+
+
 export default router

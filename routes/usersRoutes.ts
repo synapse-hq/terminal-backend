@@ -1,4 +1,7 @@
+// @ts-nocheck
+
 import express, { Request, Response } from "express";
+// import { Request } from "@types/express"
 const router = express.Router();
 import { pg } from '../src/db'
 const bcrypt = require("bcrypt")
@@ -9,7 +12,7 @@ type userReqBody = {
   passwordHash: string
 }
 
-router.post('/new', async (req : Request, res: Response) => {
+router.post('/', async (req : Request, res: Response) => {
   console.log(req)
   const body : userReqBody = req.body
   const {username, passwordHash} = body;
@@ -55,7 +58,6 @@ router.post('/new', async (req : Request, res: Response) => {
 
 // login
 router.post('/login', async (req : Request, res : Response) => {
-  const body : userReqBody = req.body
   const {username, passwordHash} = {...body};
 
   // let data = await User.find({});
@@ -70,13 +72,8 @@ router.post('/login', async (req : Request, res : Response) => {
     console.log("passwords", user.passwordHash, passwordHash)
     
     if (validCredentials) {
-      let buckets = await pg.bucket.findMany({
-        where: {
-          userId: user.id,
-          deleted: false
-        }
-      })
-      res.send({username, buckets,})
+      req.session.user = user
+      res.sendStatus(200)
     } else {
       res.status(404).json({error: "invalid password"});
     }
@@ -87,14 +84,24 @@ router.post('/login', async (req : Request, res : Response) => {
 
 // delete a user account
 router.delete('/:username', async (req: Request, res: Response) => {
-  const deleteUsers = await pg.user.delete({
-    where: {
-      username: req.params.username
-    }
-  })
+  if (req.session.userId) {
+    let user = await pg.user.findUnique({
+      where: {
+        username: username,
+      },
+    })
 
-  console.log(deleteUsers)
-  res.json(deleteUsers)
+    if (user.id === req.session.userId) {
+      const deleteUsers = await pg.user.delete({
+        where: {
+          username: req.params.username
+        }
+      })
+    
+      console.log(deleteUsers)
+      res.json(deleteUsers)
+    }
+  }
 });
 
 export default router;
