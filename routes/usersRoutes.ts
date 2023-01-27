@@ -61,7 +61,7 @@ router.post('/', async (req : Request, res: Response) => {
 
 // login
 router.post('/login', async (req : Request, res : Response) => {
-  const {username, passwordHash} = {...body};
+  const {username, passwordHash} = {...req.body};
 
   // let data = await User.find({});
   let user = await pg.user.findUnique({
