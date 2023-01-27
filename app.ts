@@ -13,14 +13,9 @@ let redisClient = createClient({ legacyMode: true })
 redisClient.connect().catch(console.error);
 
 const port = process.env.PORT;
-
-// using the non-null assertion operator !
 const domain:string = process.env.DOMAIN!;
-import usersRoutes from "./routes/usersRoutes";
-import subDomainRoutes from './routes/subdomain_route';
-import bucketsRoutes from "./routes/bucketsRoutes";
-import requestsRoutes from "./routes/requestRoutes";
 
+import subDomainRoutes from './routes/subdomain_route';
 import rootDomainRoutes from "./routes/rootDomainRoutes"
 
 const app: Application = express();
@@ -45,16 +40,9 @@ app.use(session({
 
 console.log(domain)
 
-// need to find a way to exclude www from subDomainRoutes (regex?)
-// app.use(vhost("www." + domain, rootDomainRoutes));
 app.use(vhost(domain, rootDomainRoutes));
 app.use(vhost("www." + domain, rootDomainRoutes));
 app.use(vhost("*." + domain, subDomainRoutes));
-
-
-// app.use("/api/buckets", bucketsRoutes)
-// app.use("/api/requests", requestsRoutes)
-// app.use("/api/users", usersRoutes)
 
 app.use((req: Request, res: Response) => {
   res.send("END OF ROUTES")
