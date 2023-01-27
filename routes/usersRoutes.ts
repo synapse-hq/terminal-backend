@@ -11,12 +11,13 @@ type userReqBody = {
   passwordHash: string
 }
 
+router.get('/session_test', async (req : Request, res: Response) => { 
+  res.status(200).json({session: req.session})
+})
+
 router.post('/', async (req : Request, res: Response) => {
   const body : userReqBody = req.body
-  
   const {username, passwordHash} = body;
-
-  
 
   if (!username || !passwordHash) {
     res.status(404).json({error: "Username or password not present"});
@@ -50,7 +51,6 @@ router.post('/', async (req : Request, res: Response) => {
         createdAt:  new Date()
       },
     });
-    // const savedUser = await user.save();
     res.status(201).json(user);
   } catch(err) {
     res.status(404).json({error: 'username already in use'})
@@ -63,7 +63,17 @@ router.post('/', async (req : Request, res: Response) => {
 router.post('/login', async (req : Request, res : Response) => {
   const {username, passwordHash} = {...req.body};
 
-  // let data = await User.find({});
+
+  if (!username) {
+    res.status(404).json({error: "No Username Given"})
+    return
+  }
+
+  if (!passwordHash) {
+    res.status(404).json({error: "No Password Given"})
+    return
+  }
+
   let user = await pg.user.findUnique({
     where: {
       username: username,
@@ -85,6 +95,15 @@ router.post('/login', async (req : Request, res : Response) => {
   }
 });
 
+router.post('/logout', async(req: Request, res: Response) => {
+  if (req.session.user) {
+    delete req.session.user
+    res.status(200).json({session: req.session})
+  } else {
+    res.status(402).json({error: "not signed in"})
+  }
+})
+
 // delete a user account
 router.delete('/:username', async (req: Request, res: Response) => {
   if (req.session.userId) {
@@ -101,7 +120,6 @@ router.delete('/:username', async (req: Request, res: Response) => {
         }
       })
     
-      console.log(deleteUsers)
       res.json(deleteUsers)
     }
   }

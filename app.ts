@@ -48,15 +48,4 @@ app.use((req: Request, res: Response) => {
   res.send("END OF ROUTES")
 });
 
-// below function is for testing
-
-// async function main() {
-// }
-
-// main().catch(e => console.error(e.message))
-//       .finally(async () => {
-//         await pg.$disconnect();
-//         await mongo.$disconnect();
-//       })
-
 app.listen(port, () => console.log('Server listening on port '+ port));

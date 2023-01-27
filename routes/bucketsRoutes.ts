@@ -31,13 +31,6 @@ router.get("/", async(req: Request, res: Response) => {
 router.post("/", async(req: Request, res: Response) => {
   const body : newBinReq = req.body
   const { user } = req.session
-  // can pass user id or can use username to make a query to retrieve user id
-  
-  // let user = await pg.user.findUnique({
-  //   where: {
-  //     id: user.id,
-  //   },
-  // })
 
   if (!user) {
     res.status(404).json({error: "invalid user"})
@@ -106,6 +99,7 @@ router.get("/:username", async(req: Request, res: Response) => {
 
 })
 
+// set a bucket to deleted
 router.delete("/:subdomain", async(req: Request, res: Response) => {
   const { subdomain } = req.params
 
