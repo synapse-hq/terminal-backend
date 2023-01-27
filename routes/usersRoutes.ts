@@ -11,6 +11,10 @@ type userReqBody = {
   passwordHash: string
 }
 
+router.get('/session_test', async (req : Request, res: Response) => { 
+  res.status(200).json({session: req.session})
+})
+
 router.post('/', async (req : Request, res: Response) => {
   const body : userReqBody = req.body
   const {username, passwordHash} = body;
