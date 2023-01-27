@@ -1,28 +1,29 @@
-POST http://localhost:5001/new_user HTTP/1.1
+POST http://terminal.diegohernandezramirez.dev/api/users HTTP/1.1
 Content-Type: application/json
 
 {
-  "username": "synapse10",
+  "username": "synapse12",
   "passwordHash": "password"
 }
 
 ###
-POST http://localhost:5001/login HTTP/1.1
+POST http://terminal.diegohernandezramirez.dev/api/users/login HTTP/1.1
 Content-Type: application/json
 
 {
-  "username": "synapse10",
-  "passwordHash": "password"
+  "username": "synapse12"
 }
 
 ###
-POST http://localhost:5001/api/bins HTTP/1.1
+POST https://terminal.diegohernandezramirez.dev/api/buckets HTTP/1.1
 Content-Type: application/json
 
 {
-  "username": "synpase10",
-  "userId": 8,
-  "sessionActive": true
+  "session": {
+    "user": {
+      "id": 10
+    }
+  }
 }
 
 ###

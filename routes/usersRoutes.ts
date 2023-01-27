@@ -13,10 +13,7 @@ type userReqBody = {
 
 router.post('/', async (req : Request, res: Response) => {
   const body : userReqBody = req.body
-  
   const {username, passwordHash} = body;
-
-  
 
   if (!username || !passwordHash) {
     res.status(404).json({error: "Username or password not present"});
@@ -50,7 +47,6 @@ router.post('/', async (req : Request, res: Response) => {
         createdAt:  new Date()
       },
     });
-    // const savedUser = await user.save();
     res.status(201).json(user);
   } catch(err) {
     res.status(404).json({error: 'username already in use'})
@@ -61,9 +57,8 @@ router.post('/', async (req : Request, res: Response) => {
 
 // login
 router.post('/login', async (req : Request, res : Response) => {
-  const {username, passwordHash} = {...body};
+  const {username, passwordHash} = {...req.body};
 
-  // let data = await User.find({});
   let user = await pg.user.findUnique({
     where: {
       username: username,
@@ -101,7 +96,6 @@ router.delete('/:username', async (req: Request, res: Response) => {
         }
       })
     
-      console.log(deleteUsers)
       res.json(deleteUsers)
     }
   }
