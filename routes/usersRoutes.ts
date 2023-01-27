@@ -1,7 +1,6 @@
 // @ts-nocheck
 
 import express, { Request, Response } from "express";
-// import { Request } from "@types/express"
 const router = express.Router();
 import { pg } from '../src/db'
 const bcrypt = require("bcrypt")
@@ -13,18 +12,23 @@ type userReqBody = {
 }
 
 router.post('/', async (req : Request, res: Response) => {
-  console.log(req)
   const body : userReqBody = req.body
+  
   const {username, passwordHash} = body;
 
-  console.log(body, username)
+  
+
+  if (!username || !passwordHash) {
+    res.status(404).json({error: "Username or password not present"});
+    return
+  }
+
   let user = await pg.user.findUnique({
     where: {
       username: username,
     },
   })
 
-  console.log(user)
   if (user) {
     res.status(404).json({error: "Username already exists"})
     return
@@ -36,7 +40,6 @@ router.post('/', async (req : Request, res: Response) => {
   }
 
   const saltRounds = 10;
-  // console.log(password, saltRounds)
   const hashed: string = await bcrypt.hash(passwordHash, saltRounds);
 
   try {
