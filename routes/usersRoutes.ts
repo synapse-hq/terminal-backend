@@ -84,6 +84,15 @@ router.post('/login', async (req : Request, res : Response) => {
   }
 });
 
+router.post('/logout', async(req: Request, re: Response) => {
+  if (req.session.user) {
+    delete req.session.user
+    res.status(200).json({session: req.session})
+  } else {
+    res.status(402).json({error: "not signed in"})
+  }
+})
+
 // delete a user account
 router.delete('/:username', async (req: Request, res: Response) => {
   if (req.session.userId) {
