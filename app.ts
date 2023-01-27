@@ -22,7 +22,9 @@ const app: Application = express();
 const cors = require('cors');
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "https://bruinooge.dev"
+}));
 
 app.use(session({
   cookie: {

@@ -10,6 +10,3 @@ router.use("/api/requests", requestsRoutes)
 router.use("/api/users", usersRoutes)
 
 export default router
-// router.use("/api/buckets", bucketsRoutes)
-// router.use("/api/requests", requestsRoutes)
-// router.use("/api/users", usersRoutes)
