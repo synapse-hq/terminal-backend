@@ -84,7 +84,7 @@ router.post('/login', async (req : Request, res : Response) => {
   }
 });
 
-router.post('/logout', async(req: Request, re: Response) => {
+router.post('/logout', async(req: Request, res: Response) => {
   if (req.session.user) {
     delete req.session.user
     res.status(200).json({session: req.session})
