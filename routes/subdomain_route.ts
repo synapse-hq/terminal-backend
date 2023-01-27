@@ -5,7 +5,6 @@ import { mongo } from '../src/db'
 
 
 router.use(async (req: Request, res: Response, next) => {
-  //console.log('request came through');
   // find bucket based on current subdomain (prepended part)
   const hostname = req.hostname.split('.')[0]
   const bucket = await pg.bucket.findFirst({

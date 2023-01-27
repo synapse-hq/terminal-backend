@@ -25,17 +25,8 @@ const cors = require('cors');
 
 app.use(express.json());
 
-const whitelist = ['http://bruinooge.dev', 'http://www.bruinooge.dev',
-                   'https://bruinooge.dev', 'https://www.bruinooge.dev'];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
+  origin: "https://bruinooge.dev"
 }));
 
 app.use(session({
