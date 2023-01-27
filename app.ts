@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import express, { Request, Response, Application, NextFunction } from "express";
 import vhost = require('vhost')
 import { pg } from './src/db'
@@ -22,6 +24,7 @@ const app: Application = express();
 const cors = require('cors');
 
 app.use(express.json());
+
 app.use(cors({
   origin: "https://bruinooge.dev"
 }));
