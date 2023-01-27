@@ -86,7 +86,7 @@ router.post('/login', async (req : Request, res : Response) => {
     
     if (validCredentials) {
       req.session.user = user
-      res.sendStatus(200)
+      res.status(200).json({username: user.username, id: user.id});
     } else {
       res.status(404).json({error: "invalid password"});
     }
