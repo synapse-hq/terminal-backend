@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import express, { Request, Response, Application, NextFunction } from "express";
 import vhost = require('vhost')
 import { pg } from './src/db'
@@ -22,7 +24,19 @@ const app: Application = express();
 const cors = require('cors');
 
 app.use(express.json());
-app.use(cors());
+
+const whitelist = ['http://bruinooge.dev', 'http://www.bruinooge.dev',
+                   'https://bruinooge.dev', 'https://www.bruinooge.dev'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}));
 
 app.use(session({
   cookie: {
