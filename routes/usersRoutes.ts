@@ -13,7 +13,7 @@ type userReqBody = {
 }
 
 router.post('/', async (req : Request, res: Response) => {
-  console.log(req)
+  console.log("USERS/", req)
   const body : userReqBody = req.body
   const {username, passwordHash} = body;
 
@@ -30,13 +30,17 @@ router.post('/', async (req : Request, res: Response) => {
     return
   }
 
+  if (!passwordHash) {
+    res.status(404).json({error: "enter a password"})
+    return
+  }
+
   if (passwordHash.length < 5) {
     res.status(404).json({error: "Invalid Password"})
     return
   }
 
   const saltRounds = 10;
-  // console.log(password, saltRounds)
   const hashed: string = await bcrypt.hash(passwordHash, saltRounds);
 
   try {
@@ -47,7 +51,6 @@ router.post('/', async (req : Request, res: Response) => {
         createdAt:  new Date()
       },
     });
-    // const savedUser = await user.save();
     res.status(201).json(user);
   } catch(err) {
     res.status(404).json({error: 'username already in use'})
@@ -58,9 +61,8 @@ router.post('/', async (req : Request, res: Response) => {
 
 // login
 router.post('/login', async (req : Request, res : Response) => {
-  const {username, passwordHash} = {...body};
+  const {username, passwordHash} = {...req.body};
 
-  // let data = await User.find({});
   let user = await pg.user.findUnique({
     where: {
       username: username,

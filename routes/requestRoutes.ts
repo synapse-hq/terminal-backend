@@ -5,13 +5,15 @@ import { mongo } from '../src/db'
 
 const router = express.Router()
 
-
 router.get("/", async(req: Request, res: Response) => {
+  console.log("request!", req.hostname, req.vhost.hostname)
+
   const requests = await pg.request.findMany({})
   res.status(200).json(requests)
 })
 
 router.get("/:subdomain", async(req: Request, res: Response) => {
+  console.log("request!", req.params.subdomain)
   if (req.session.user) {
     const bucket = await pg.bucket.findUnique({
       where: {

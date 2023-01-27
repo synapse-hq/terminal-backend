@@ -1,7 +1,5 @@
 import express, { Request, Response, Application, NextFunction } from "express";
 import vhost = require('vhost')
-import { pg } from './src/db'
-import { mongo } from './src/db'
 import * as dotenv from "dotenv"
 dotenv.config();
 
@@ -16,18 +14,16 @@ const port = process.env.PORT;
 
 // using the non-null assertion operator !
 const domain:string = process.env.DOMAIN!;
-import usersRoutes from "./routes/usersRoutes";
 import subDomainRoutes from './routes/subdomain_route';
-import bucketsRoutes from "./routes/bucketsRoutes";
-import requestsRoutes from "./routes/requestRoutes";
-
 import rootDomainRoutes from "./routes/rootDomainRoutes"
 
 const app: Application = express();
 const cors = require('cors');
+// const bodyParser = require('body-parser')
 
 app.use(express.json());
 app.use(cors());
+// app.use(bodyParser())
 
 app.use(session({
   cookie: {
@@ -47,6 +43,11 @@ console.log(domain)
 
 // need to find a way to exclude www from subDomainRoutes (regex?)
 // app.use(vhost("www." + domain, rootDomainRoutes));
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(req.hostname, req.path)
+  next()
+});
+
 app.use(vhost(domain, rootDomainRoutes));
 app.use(vhost("www." + domain, rootDomainRoutes));
 app.use(vhost("*." + domain, subDomainRoutes));
