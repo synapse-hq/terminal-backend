@@ -63,6 +63,16 @@ router.post('/', async (req : Request, res: Response) => {
 router.post('/login', async (req : Request, res : Response) => {
   const {username, passwordHash} = {...req.body};
 
+  if (!username) {
+    res.status(404).json({error: "No Username Given"})
+    return
+  }
+
+  if (!passwordHash) {
+    res.status(404).json({error: "No Password Given"})
+    return
+  }
+
   let user = await pg.user.findUnique({
     where: {
       username: username,

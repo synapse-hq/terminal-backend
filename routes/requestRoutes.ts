@@ -13,7 +13,7 @@ router.get("/", async(req: Request, res: Response) => {
 
 router.get("/:subdomain", async(req: Request, res: Response) => {
   if (req.session.user) {
-    const bucket = await pg.bucket.findUnique({
+    const bucket = await pg.bucket.findFirst({
       where: {
         subdomain: req.params.subdomain,
         userId: req.session.user.id
@@ -51,6 +51,8 @@ router.get("/:subdomain", async(req: Request, res: Response) => {
       res.status(404).json({error: "failed mongodb queries....."})
     }
 
+  } else {
+    res.status(404).json({error: "Not Logged In"});
   }
 })
 export default router
