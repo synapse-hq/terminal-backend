@@ -26,7 +26,9 @@ const cors = require('cors');
 app.use(express.json());
 
 app.use(cors({
-  origin: "https://bruinooge.dev"
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
 }));
 
 app.use(session({
