@@ -28,19 +28,22 @@ app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true,
+  credentials: true
 }));
 
+
+app.set('trust proxy', 1)
 app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    path: "/",
-    secure: false,
+    secure: true,
+    sameSite: 'none',
   },
-  name: 'session-example',
-  resave: false,
-  saveUninitialized: true,
+  proxy: true,  
+  name: 'terminal-cookie',
+  // resave: true,
+  // saveUninitialized: true,
   secret: "secret",
   store: new RedisStore({client: redisClient }),
 }));
