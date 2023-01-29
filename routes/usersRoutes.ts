@@ -11,15 +11,25 @@ type userReqBody = {
   passwordHash: string
 }
 
+router.get('/', async (req : Request, res: Response) => {
+  const users = await pg.user.findMany({});
+  res.status(200).json(users)
+})
+
 router.get('/session_test', async (req : Request, res: Response) => { 
-  res.status(200).json({session: req.session})
+  	console.log("SESSION TEST", req.session, req.session.user)
+	if (req.session.user) {
+		res.status(200).json({session: req.session})
+	} else {
+		res.status(404).json({error: "no cookie"})
+	}
 })
 
 router.post('/', async (req : Request, res: Response) => {
   const body : userReqBody = req.body
   const {username, passwordHash} = body;
 
-  if (!username || !passwordHash) {
+  if (!username) {
     res.status(404).json({error: "Username or password not present"});
     return
   }
@@ -35,6 +45,11 @@ router.post('/', async (req : Request, res: Response) => {
     return
   }
 
+  if (!passwordHash) {
+    res.status(404).json({error: "No Password Given"})
+    return
+  }
+	
   if (passwordHash.length < 5) {
     res.status(404).json({error: "Invalid Password"})
     return
@@ -62,6 +77,17 @@ router.post('/', async (req : Request, res: Response) => {
 // login
 router.post('/login', async (req : Request, res : Response) => {
   const {username, passwordHash} = {...req.body};
+console.log("SESSION TEST in /login", req.session, req.session.user)
+
+  if (!username) {
+    res.status(404).json({error: "No Username Given"})
+    return
+  }
+
+  if (!passwordHash) {
+    res.status(404).json({error: "No Password Given"})
+    return
+  }
 
   let user = await pg.user.findUnique({
     where: {
@@ -75,6 +101,7 @@ router.post('/login', async (req : Request, res : Response) => {
     
     if (validCredentials) {
       req.session.user = user
+	console.log("SESSION TEST", req.session, req.session.user)
       res.sendStatus(200)
     } else {
       res.status(404).json({error: "invalid password"});
@@ -87,6 +114,7 @@ router.post('/login', async (req : Request, res : Response) => {
 router.post('/logout', async(req: Request, res: Response) => {
   if (req.session.user) {
     delete req.session.user
+	console.log("user logged out")
     res.status(200).json({session: req.session})
   } else {
     res.status(402).json({error: "not signed in"})

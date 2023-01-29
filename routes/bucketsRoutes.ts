@@ -23,15 +23,34 @@ type newBinReq = {
 
 // get all buckets
 router.get("/", async(req: Request, res: Response) => {
-  const buckets = await pg.bucket.findMany({})
-  res.status(200).json(buckets)
+	console.log("TESTING new get buckets/ route using req session")
+	console.log("SESSION", req.session, req.session.user); 
+ if (req.session.user) {
+///
+  try {
+    const buckets = await pg.bucket.findMany({
+      where: {
+        userId: req.session.user.id,
+        deleted: false
+      }
+    })
+
+    res.status(200).json(buckets)
+  } catch {
+    res.status(400).json({error: "invalid user"})
+  }
+///
+  } else {
+    res.status(400).json({error:"Not Logged In"});
+  }
 })
 
 // make a new bucket
 router.post("/", async(req: Request, res: Response) => {
   const body : newBinReq = req.body
   const { user } = req.session
-
+	
+	console.log("SESSION TEST", req.session, req.session.user)
   if (!user) {
     res.status(404).json({error: "invalid user"})
     return

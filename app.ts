@@ -21,6 +21,8 @@ import rootDomainRoutes from "./routes/rootDomainRoutes"
 const app: Application = express();
 const cors = require('cors');
 
+const fs = require("fs");
+
 app.use(express.json());
 app.use(cors());
 
@@ -40,12 +42,26 @@ app.use(session({
 
 console.log(domain)
 
+// sse test route
+app.get("/events", async function(req: Request, res: Response) {
+  console.log("/events")
+  res.set({
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive'
+  })
+
+  res.flushHeaders()
+})
+
 app.use(vhost(domain, rootDomainRoutes));
 app.use(vhost("www." + domain, rootDomainRoutes));
 app.use(vhost("*." + domain, subDomainRoutes));
 
 app.use((req: Request, res: Response) => {
-  res.send("END OF ROUTES")
+  	console.log(req.hostname)
+	console.log(req.path)
+	res.send("END OF ROUTES")
 });
 
 app.listen(port, () => console.log('Server listening on port '+ port));
