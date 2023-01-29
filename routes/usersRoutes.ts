@@ -12,6 +12,8 @@ type userReqBody = {
 }
 
 router.get('/session_test', async (req : Request, res: Response) => { 
+  console.log("SESSION TEST", req.session)
+
   res.status(200).json({session: req.session})
 })
 
@@ -80,12 +82,15 @@ router.post('/login', async (req : Request, res : Response) => {
     },
   })
 
+  console.log("SESSION", req.session)
   if (user) {
     let validCredentials = await bcrypt.compare(passwordHash, user.passwordHash);
     console.log("passwords", user.passwordHash, passwordHash)
     
     if (validCredentials) {
       req.session.user = user
+      console.log("SESSION2", req.session)
+
       res.status(200).json({username: user.username, id: user.id});
     } else {
       res.status(404).json({error: "invalid password"});

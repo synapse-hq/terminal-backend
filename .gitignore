@@ -1,3 +1,4 @@
 .env
 src/generated
 node_modules
+reqs.REST
