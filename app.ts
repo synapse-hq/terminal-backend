@@ -20,19 +20,98 @@ const domain:string = process.env.DOMAIN!;
 import subDomainRoutes from './routes/subdomain_route';
 import rootDomainRoutes from "./routes/rootDomainRoutes"
 
+// sockets
+import * as http from 'http';
+import * as WebSocket from 'ws';
+
 const app: Application = express();
+
+// sockets
+const server = http.createServer(app);
+const wss = new WebSocket.Server({server, path: "/buckets"})
+
+// when connection established
+wss.on('connection', (ws: WebSocket) => {
+
+  //// logic for retrieving request for a given for subdomain
+    const getReqs = async(subdomain: string) => {
+      subdomain = subdomain.toString()
+      console.log("SUBDOMAIN VAL IN ASYNC FUNC", subdomain)
+      
+      const bucket = await pg.bucket.findFirst({
+        where: {
+          subdomain,
+        }
+      })
+    
+      if (!bucket) {
+        console.log("NO BUCKET FOUND")
+        ws.send("NO BUCKET FOUND")
+        return
+      }
+    
+      let requests = await pg.request.findMany({
+        where: {
+          bucketId: bucket.id,
+        }
+      })
+      console.log(requests, "BEFORE getting raw request")
+      try {
+        let promises = requests.map(async(request) => {
+          const payload = await mongo.payload.findUnique({
+            where: {
+              id: request.payload
+            }
+          })
+    
+          return {
+            ...request,
+            rawRequest: payload?.rawRequest
+          }
+        })
+    
+        requests = await Promise.all(promises)
+      } catch {
+        ws.send("request retrieval failed")
+        console.log("reqs retrieval failed")
+      }
+    
+      ws.send(JSON.stringify(requests));
+    }
+  ////
+
+    //function executed when websocket on server receives a message
+    ws.on('message', (subdomain: string) => {
+
+        //log the received message
+        console.log('bucket subdomain: %s', subdomain);
+        console.log("bucket requests: \n\n")
+
+        // execute reqs retrieval function
+        getReqs(subdomain)
+    });
+
+    // initial connection acknowledgement on client and server side
+    console.log("websocket connection established")
+    ws.send("websocket connection established")
+});
+
+
+
 const cors = require('cors');
 
 app.use(express.json());
 
-app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true
-}));
+
+app.use(cors())
+// app.use(cors({
+//   origin: 'http://localhost:3000',
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   credentials: true
+// }));
 
 
-app.set('trust proxy', 1)
+// app.set('trust proxy', 1)
 app.use(session({
   cookie: {
     httpOnly: true,
