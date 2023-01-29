@@ -137,4 +137,4 @@ app.use((req: Request, res: Response) => {
   res.send("END OF ROUTES")
 });
 
-app.listen(port, () => console.log('Server listening on port '+ port));
+server.listen(port, () => console.log('Server listening on port '+ port));
