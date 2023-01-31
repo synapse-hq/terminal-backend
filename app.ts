@@ -66,7 +66,7 @@ wss.on('connection', (ws: WebSocket) => {
                 });
 
                 console.log(" [*] Waiting for messages in %s", q);
-                channel.prefetch(1);
+                channel.prefetch(100);
                 
                 console.log("BOUND to queue")
                 channel.consume(q.queue, function(msg: any) {

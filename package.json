@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+   "build": "tsc --build",
+    "serve": "tsc src/app.ts -w & pm2 start dist/app.js --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev app.ts"
   },

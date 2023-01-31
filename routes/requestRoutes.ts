@@ -6,10 +6,10 @@ import { mongo } from '../src/db'
 const router = express.Router()
 
 
-router.get("/", async(req: Request, res: Response) => {
-  const requests = await pg.request.findMany({})
-  res.status(200).json(requests)
-})
+// router.get("/", async(req: Request, res: Response) => {
+//   const requests = await pg.request.findMany({})
+//   res.status(200).json(requests)
+// })
 
 router.get("/:subdomain", async(req: Request, res: Response) => {
   if (req.session.user) {

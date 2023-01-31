@@ -11,10 +11,10 @@ type userReqBody = {
   passwordHash: string
 }
 
-router.get('/', async (req : Request, res: Response) => {
-  const users = await pg.user.findMany({});
-  res.status(200).json(users)
-})
+// router.get('/', async (req : Request, res: Response) => {
+//   const users = await pg.user.findMany({});
+//   res.status(200).json(users)
+// })
 
 router.get('/session_test', async (req : Request, res: Response) => { 
 	if (req.session.user) {
