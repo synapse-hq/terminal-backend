@@ -21,10 +21,8 @@ type newBinReq = {
   username: string
 }
 
-// get all buckets
+// get all active user buckets
 router.get("/", async(req: Request, res: Response) => {
-	console.log("TESTING new get buckets/ route using req session")
-	console.log("SESSION", req.session, req.session.user); 
  if (req.session.user) {
 ///
   try {
@@ -50,7 +48,6 @@ router.post("/", async(req: Request, res: Response) => {
   const body : newBinReq = req.body
   const { user } = req.session
 	
-	console.log("SESSION TEST", req.session, req.session.user)
   if (!user) {
     res.status(404).json({error: "invalid user"})
     return
@@ -79,43 +76,12 @@ router.post("/", async(req: Request, res: Response) => {
     })
 
     console.log(newBucket)
-    res.status(200).json({bucket: newBucket})
+    res.status(200).json(newBucket)
 
   } catch {
     res.status(404).json({error: "invalid user"})
 
   }
-})
-
-// search for currently active user buckets
-router.get("/:username", async(req: Request, res: Response) => {
-  const {username } = req.params
-
-  const user = await pg.user.findUnique({
-    where: {
-      username,
-    }
-  });
-
-  if (!user) {
-    res.status(400).json({error: "invalid user"})
-    return
-  }
-
-  try {
-    const buckets = await pg.bucket.findMany({
-      where: {
-        userId: user.id,
-        deleted: false
-      }
-    })
-
-    res.status(200).json(buckets)
-  } catch {
-    res.status(400).json({error: "invalid user"})
-  }
-
-
 })
 
 // set a bucket to deleted

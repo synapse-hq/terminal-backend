@@ -17,11 +17,11 @@ router.get('/', async (req : Request, res: Response) => {
 })
 
 router.get('/session_test', async (req : Request, res: Response) => { 
-  	console.log("SESSION TEST", req.session, req.session.user)
 	if (req.session.user) {
-		res.status(200).json({session: req.session})
+    console.log(req.session.user.username)
+		res.status(200).json({username: req.session.user.username})
 	} else {
-		res.status(404).json({error: "no cookie"})
+		res.status(404).json({error: "Not logged in"})
 	}
 })
 
@@ -77,7 +77,6 @@ router.post('/', async (req : Request, res: Response) => {
 // login
 router.post('/login', async (req : Request, res : Response) => {
   const {username, passwordHash} = {...req.body};
-console.log("SESSION TEST in /login", req.session, req.session.user)
 
   if (!username) {
     res.status(404).json({error: "No Username Given"})
@@ -101,8 +100,7 @@ console.log("SESSION TEST in /login", req.session, req.session.user)
     
     if (validCredentials) {
       req.session.user = user
-	console.log("SESSION TEST", req.session, req.session.user)
-      res.sendStatus(200)
+      res.status(200).json({username: user.username})
     } else {
       res.status(404).json({error: "invalid password"});
     }
@@ -114,7 +112,6 @@ console.log("SESSION TEST in /login", req.session, req.session.user)
 router.post('/logout', async(req: Request, res: Response) => {
   if (req.session.user) {
     delete req.session.user
-	console.log("user logged out")
     res.status(200).json({session: req.session})
   } else {
     res.status(402).json({error: "not signed in"})

@@ -35,122 +35,61 @@ const amqp = require("amqplib/callback_api")
 
 // when connection established
 wss.on('connection', (ws: WebSocket) => {
-
-  //// logic for retrieving request for a given for subdomain
-    const getReqs = async(subdomain: string) => {
-      subdomain = subdomain.toString()
-      console.log("SUBDOMAIN VAL IN ASYNC FUNC", subdomain)
-      
-      const bucket = await pg.bucket.findFirst({
-        where: {
-          subdomain,
-        }
-      })
-      
-      console.log(bucket)
-      if (!bucket) {
-        console.log("NO BUCKET FOUND")
-        ws.send("NO BUCKET FOUND")
-        return
-      }
-      
-      let requests = await pg.request.findMany({
-        where: {
-          bucketId: bucket.id,
-        }
-      })
-      console.log(requests, "BEFORE getting raw request")
-      try {
-        let promises = requests.map(async(request) => {
-          const payload = await mongo.payload.findUnique({
-            where: {
-              id: request.payload
-            }
-          })
-    
-          return {
-            ...request,
-            rawRequest: payload?.rawRequest
-          }
-        })
-    
-        requests = await Promise.all(promises)
-      } catch {
-        ws.send("request retrieval failed")
-        console.log("reqs retrieval failed")
-      }
-    
-      ws.send(JSON.stringify(requests));
-    }
-  ////
-
     //function executed when websocket on server receives a message
     ws.on('message', (subdomain: string) => {
-        
-          console.log(subdomain)
           subdomain = subdomain.toString()
           //log the received message
           console.log('bucket subdomain: %s', subdomain);
-          console.log("bucket requests: \n\n")
 
-          /// creating a channel with amqp msg q
-          // amqp.connect("amqp://diego:password@localhost/RabbitsInParis", function(error0: any, connection: any) {
-          //   if (error0) {
-          //     console.log(error0)
-          //     throw error0;
-          //   }
+          // creating a channel with amqp msg q
+          amqp.connect("amqp://diego:password@localhost/RabbitsInParis", function(error0: any, connection: any) {
+            if (error0) {
+              console.log(error0)
+              throw error0;
+            }
 
-          //   // create the exchange and msg queu
-          //   connection.createChannel(function(error1: any, channel: any) {
-          //     if (error1) {
-          //       throw error1
-          //     }
-          //     channel.assertExchange(subdomain, "fanout", {durable: false})              
-              
-          //     // create a queueu that will consume from the newly created queue
-          //     channel.assertQueue(subdomain, {
-          //       exclusive: true
-          //     }, function(error2: any, q: any) {
-          //       if (error2) {
-          //         throw error2;
-          //       }
-          //       console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-          //       channel.bindQueue(q.queue, subdomain, '');
-          
-          //       channel.consume(q.queue, function(msg: any) {
-          //         if(msg.content) {
-          //             console.log(" [x] %s", msg.content.toString());
-          //           }
-          //       }, {
-          //         noAck: true
-          //       });
-          //     });
-  
-          //   });
+            connection.createChannel(function(error1: any, channel: any) {
+              if (error1) {
+                throw error1
+              }
 
-          //   //immediately after subscribe to the created qmsg broker /
-            
-          //   setTimeout(function() {
-          //     connection.close();
-          //     process.exit(0);
-          //   }, 10000);
-          // })
-  
-        // execute reqs retrieval function
-        getReqs(subdomain)
+              // create a queueu that will consume from the newly created queue
+              channel.assertQueue(subdomain, {
+                exclusive: false
+              }, function(error2: any, q: any) {
+                if (error2) {
+                  throw error2;
+                }
+                
+                channel.assertQueue(subdomain, {
+                  durable: true
+                });
+
+                console.log(" [*] Waiting for messages in %s", q);
+                channel.prefetch(1);
+                
+                console.log("BOUND to queue")
+                channel.consume(q.queue, function(msg: any) {
+                  if(msg.content) {
+                      console.log("ABOUT TO SEND MSG", JSON.parse(msg.content.toString()))
+                      ws.send(msg.content.toString())
+                    }
+                }, {
+                  noAck: true
+                });
+              });
+            })
+            //immediately after subscribe to the created qmsg broker /
+          })
     });
 
     
     ws.on("close", () => {
-
       console.log("ws connection closed")
     })
 
     // initial connection acknowledgement on client and server side
     console.log("websocket connection established")
-    ws.send("websocket connection established")
-
-
 });
 
 //
@@ -174,16 +113,11 @@ app.use(session({
   store: new RedisStore({client: redisClient }),
 }));
 
-console.log(domain)
-
-
 app.use(vhost(domain, rootDomainRoutes));
 app.use(vhost("www." + domain, rootDomainRoutes));
 app.use(vhost("*." + domain, subDomainRoutes));
 
 app.use((req: Request, res: Response) => {
-  	console.log(req.hostname)
-	console.log(req.path)
 	res.send("END OF ROUTES")
 });
 
