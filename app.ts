@@ -55,23 +55,17 @@ wss.on('connection', (ws: WebSocket) => {
 
               // create a queueu that will consume from the newly created queue
               channel.assertQueue(subdomain, {
+                durable: false,
                 exclusive: false
               }, function(error2: any, q: any) {
                 if (error2) {
                   throw error2;
                 }
-                
-                channel.assertQueue(subdomain, {
-                  durable: true
-                });
 
-                console.log(" [*] Waiting for messages in %s", q);
                 channel.prefetch(100);
                 
-                console.log("BOUND to queue")
                 channel.consume(q.queue, function(msg: any) {
                   if(msg.content) {
-                      console.log("ABOUT TO SEND MSG", JSON.parse(msg.content.toString()))
                       ws.send(msg.content.toString())
                     }
                 }, {
@@ -85,6 +79,7 @@ wss.on('connection', (ws: WebSocket) => {
 
     
     ws.on("close", () => {
+
       console.log("ws connection closed")
     })
 

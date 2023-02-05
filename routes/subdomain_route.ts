@@ -70,7 +70,7 @@ router.use(async (req: Request, res: Response, next) => {
           }
           
           channel.assertQueue(subdomain, {
-            durable: true
+            durable: false
           });
           channel.sendToQueue(subdomain, Buffer.from(JSON.stringify(requestToEmit)), {
             persistent: true
@@ -79,7 +79,7 @@ router.use(async (req: Request, res: Response, next) => {
 
         setTimeout(() => {
           connection.close()
-        }, 2500)
+        }, 100)
       });
 
   res.status(200).send("request received")

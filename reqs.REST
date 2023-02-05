@@ -37,3 +37,11 @@ DELETE http://localhost:5001/api/bins/synpase10a19c1592-d02a-482a-b0be-22f48cdf8
 #   "password": "first1",
 #   "email": "first2.firs2@email.com"
 # }
+
+###
+POST https://testingaac7b584-4828-4120-9787-088ec54fdd84.terminal.diegohernandezramirez.dev
+Content-Type: application/json
+
+{
+  "test": "passed"
+}
