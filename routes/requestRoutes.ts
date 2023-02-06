@@ -21,7 +21,7 @@ router.get("/:subdomain", async(req: Request, res: Response) => {
     })
   
     if (!bucket) {
-      res.status(400).json({error: "bucket does not exists"})
+      res.status(404).json({error: "bucket does not exists or you do not have access"})
       return
     }
   
@@ -52,7 +52,7 @@ router.get("/:subdomain", async(req: Request, res: Response) => {
     }
 
   } else {
-    res.status(404).json({error: "not logged in"});
+    res.status(401).json({error: "You are not logged in"});
   }
 })
 export default router

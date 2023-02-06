@@ -83,6 +83,78 @@ router.post("/", async(req: Request, res: Response) => {
 
   }
 })
+/*
+- find user to share with 
+  - find unique using username
+
+- find the bucket
+  - use req session id
+  - use bucket subdomain
+
+- create a new bucket
+  - set userId to targetuser
+  
+*/
+type shareBucketReq = {
+  shareUser: string
+  shareBucket: string
+};
+
+router.post("/share", async(req: Request, res: Response) => {
+  if (req.session.user) {
+    const body : shareBucketReq = req.body
+    const { shareUser, shareBucket } = body;
+
+    const user = await pg.user.findUnique({
+      where: {
+        username: shareUser,
+      },
+    })
+  
+    if (!user) {
+      res.status(404).json({error: "User does not exists"})
+      return
+    }
+
+    const bucket = await pg.bucket.findFirst({
+      where: {
+        userId: req.session.user.id,
+        subdomain: shareBucket,
+        deleted: false,
+        owner: true
+      }
+    })
+    
+    console.log("TO SHARE", bucket)
+    if (!bucket) {
+      res.status(401).json({error: "You are not the owner of this bucket"})
+      return
+    }
+
+    try {
+      const sharedBucket = await pg.bucket.create({
+        data: {
+          userId: user.id,
+          subdomain: shareBucket,
+          deleted: false,
+          createdAt: bucket.createdAt,
+          sharedAt: new Date(),
+          owner: false
+        }
+      });
+
+      console.log("CREATED shared bucket", sharedBucket);
+      res.status(200).json(sharedBucket)
+      return
+    } catch(error) {
+      console.log("CREATE SHARE BUCK FAILED", error)
+      res.status(500).json({error: "Something went wrong"});
+    }
+
+  } else {
+    res.status(401).json({error: "Must be logged in, possible session timeout"})
+  }
+})
 
 // set a bucket to deleted
 router.delete("/:subdomain", async(req: Request, res: Response) => {

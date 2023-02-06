@@ -24,9 +24,11 @@ model Bucket {
   user   User @relation(fields: [userId], references: [id])
   userId Int
   deleted Boolean
-  subdomain String @unique
+  subdomain String
   createdAt DateTime
   requests Request[]
+  owner Boolean @default(true)
+  sharedAt DateTime?
 }
 
 model Request {
