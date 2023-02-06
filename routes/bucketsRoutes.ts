@@ -54,7 +54,7 @@ router.post("/", async(req: Request, res: Response) => {
   }
 
   const subdomain = user.username + uuid()
-  const existingBucket = await pg.bucket.findUnique({
+  const existingBucket = await pg.bucket.findFirst({
     where: {
       subdomain,
     }
@@ -83,24 +83,14 @@ router.post("/", async(req: Request, res: Response) => {
 
   }
 })
-/*
-- find user to share with 
-  - find unique using username
 
-- find the bucket
-  - use req session id
-  - use bucket subdomain
-
-- create a new bucket
-  - set userId to targetuser
-  
-*/
 type shareBucketReq = {
   shareUser: string
   shareBucket: string
 };
 
 router.post("/share", async(req: Request, res: Response) => {
+  console.log("SHARING ATTEMPT", req.body)
   if (req.session.user) {
     const body : shareBucketReq = req.body
     const { shareUser, shareBucket } = body;
@@ -110,23 +100,40 @@ router.post("/share", async(req: Request, res: Response) => {
         username: shareUser,
       },
     })
+
+    if (user.id === req.session.user.id ) {
+      res.status(400).json({error: "You are the owner of this bucket"})
+    }
   
     if (!user) {
       res.status(404).json({error: "User does not exists"})
       return
     }
 
+    console.log("USER id",user.id)
     const bucket = await pg.bucket.findFirst({
       where: {
-        userId: req.session.user.id,
+        userId: user.id,
         subdomain: shareBucket,
         deleted: false,
-        owner: true
       }
     })
     
     console.log("TO SHARE", bucket)
-    if (!bucket) {
+    if (bucket) {
+      res.status(200).json(bucket)
+    }
+
+    const bucketOwner = await pg.bucket.findFirst({
+      where: {
+        userId: req.session.user.id,
+        subdomain: shareBucket,
+        deleted: false,
+        owner: true,
+      }
+    })
+
+    if (!bucketOwner) {
       res.status(401).json({error: "You are not the owner of this bucket"})
       return
     }
@@ -137,17 +144,16 @@ router.post("/share", async(req: Request, res: Response) => {
           userId: user.id,
           subdomain: shareBucket,
           deleted: false,
-          createdAt: bucket.createdAt,
+          createdAt: bucketOwner.createdAt,
           sharedAt: new Date(),
-          owner: false
+          owner: false,
+          mainBucketId: bucketOwner.id,
         }
       });
 
-      console.log("CREATED shared bucket", sharedBucket);
       res.status(200).json(sharedBucket)
       return
     } catch(error) {
-      console.log("CREATE SHARE BUCK FAILED", error)
       res.status(500).json({error: "Something went wrong"});
     }
 

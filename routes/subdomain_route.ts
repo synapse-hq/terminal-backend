@@ -31,9 +31,6 @@ router.use(async (req: Request, res: Response, next) => {
     }
   });
 
-  // PAYLOAD = {rawRequest: {headers, body}}
-
-  // always returns empty string ??
   let clientIp
   const ipHeader = req.headers["x-forwarded-for"] 
   if (!ipHeader) {
@@ -79,7 +76,7 @@ router.use(async (req: Request, res: Response, next) => {
 
         setTimeout(() => {
           connection.close()
-        }, 100)
+        }, 25)
       });
 
   res.status(200).send("request received")

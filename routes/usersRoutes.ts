@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 import express, { Request, Response } from "express";
 const router = express.Router();
 import { pg } from '../src/db'
@@ -10,11 +9,6 @@ type userReqBody = {
   username: string,
   passwordHash: string
 }
-
-// router.get('/', async (req : Request, res: Response) => {
-//   const users = await pg.user.findMany({});
-//   res.status(200).json(users)
-// })
 
 router.get('/session_test', async (req : Request, res: Response) => {
   console.log("REQ SESSION")

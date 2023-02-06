@@ -5,12 +5,6 @@ import { mongo } from '../src/db'
 
 const router = express.Router()
 
-
-// router.get("/", async(req: Request, res: Response) => {
-//   const requests = await pg.request.findMany({})
-//   res.status(200).json(requests)
-// })
-
 router.get("/:subdomain", async(req: Request, res: Response) => {
   if (req.session.user) {
     const bucket = await pg.bucket.findFirst({
@@ -19,15 +13,17 @@ router.get("/:subdomain", async(req: Request, res: Response) => {
         userId: req.session.user.id
       }
     })
-  
+    
     if (!bucket) {
       res.status(404).json({error: "bucket does not exists or you do not have access"})
       return
     }
-  
+    
+    const bucketId = bucket.owner ? bucket.id : bucket.mainBucketId;
+    
     let requests = await pg.request.findMany({
       where: {
-        bucketId: bucket.id,
+        bucketId,
       }
     })
     
@@ -44,10 +40,13 @@ router.get("/:subdomain", async(req: Request, res: Response) => {
           rawRequest: payload.rawRequest
         }
       })
-  
+      console.log(promises)
+
       requests = await Promise.all(promises)
+      console.log("REQS", requests)
+
       res.status(200).json(requests)
-    } catch {
+    } catch(err) {
       res.status(404).json({error: "failed mongodb queries....."})
     }
 

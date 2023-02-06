@@ -43,7 +43,8 @@ DELETE http://localhost:5001/api/bins/synpase10a19c1592-d02a-482a-b0be-22f48cdf8
 # }
 
 ###
-POST https://admin1260073db2-b07d-4a5a-8ac2-7084313968f5.terminal.diegohernandezramirez.dev
+POST https://final081ffaa5-a19d-4cc9-8de6-1b2b3052e718.terminal.diegohernandezramirez.dev
+
 Content-Type: application/json
 
 {
