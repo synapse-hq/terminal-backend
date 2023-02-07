@@ -60,7 +60,7 @@ router.post('/', async (req : Request, res: Response) => {
         createdAt:  new Date()
       },
     });
-    res.status(201).json(user);
+    res.status(201).json({username, id: user.id});
   } catch(err) {
     res.status(404).json({error: 'username already in use'})
 
@@ -106,7 +106,7 @@ router.post('/login', async (req : Request, res : Response) => {
 router.post('/logout', async(req: Request, res: Response) => {
   if (req.session.user) {
     delete req.session.user
-    res.status(200).json({session: req.session})
+    res.sendStatus(200)
   } else {
     res.status(402).json({error: "not signed in"})
   }
