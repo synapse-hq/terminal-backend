@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 import express, { Request, Response } from "express";
 const router = express.Router();
 import { pg } from '../src/db'
@@ -11,15 +10,20 @@ type userReqBody = {
   passwordHash: string
 }
 
-router.get('/session_test', async (req : Request, res: Response) => { 
-  res.status(200).json({session: req.session})
+router.get('/session_test', async (req : Request, res: Response) => {
+	if (req.session.user) {
+    console.log(req.session.user.username)
+		res.status(200).json({username: req.session.user.username})
+	} else {
+		res.status(404).json({error: "Not logged in"})
+	}
 })
 
 router.post('/', async (req : Request, res: Response) => {
   const body : userReqBody = req.body
   const {username, passwordHash} = body;
 
-  if (!username || !passwordHash) {
+  if (!username) {
     res.status(404).json({error: "Username or password not present"});
     return
   }
@@ -35,6 +39,11 @@ router.post('/', async (req : Request, res: Response) => {
     return
   }
 
+  if (!passwordHash) {
+    res.status(404).json({error: "No Password Given"})
+    return
+  }
+	
   if (passwordHash.length < 5) {
     res.status(404).json({error: "Invalid Password"})
     return
@@ -63,7 +72,6 @@ router.post('/', async (req : Request, res: Response) => {
 router.post('/login', async (req : Request, res : Response) => {
   const {username, passwordHash} = {...req.body};
 
-
   if (!username) {
     res.status(404).json({error: "No Username Given"})
     return
@@ -86,7 +94,7 @@ router.post('/login', async (req : Request, res : Response) => {
     
     if (validCredentials) {
       req.session.user = user
-      res.status(200).json({username: user.username, id: user.id});
+      res.status(200).json({username: user.username})
     } else {
       res.status(404).json({error: "invalid password"});
     }

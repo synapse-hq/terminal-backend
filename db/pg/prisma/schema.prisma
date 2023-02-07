@@ -4,6 +4,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../../../src/generated/pg"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -24,9 +25,12 @@ model Bucket {
   user   User @relation(fields: [userId], references: [id])
   userId Int
   deleted Boolean
-  subdomain String @unique
+  subdomain String
   createdAt DateTime
   requests Request[]
+  owner Boolean @default(true)
+  mainBucketId Int?
+  sharedAt DateTime?
 }
 
 model Request {

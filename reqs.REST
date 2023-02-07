@@ -7,12 +7,16 @@ Content-Type: application/json
 }
 
 ###
-POST http://terminal.diegohernandezramirez.dev/api/users/login HTTP/1.1
+POST https://terminal.diegohernandezramirez.dev/api/users/login HTTP/1.1
 Content-Type: application/json
 
 {
-  "username": "synapse12"
+  "username": "admin12",
+  "passwordHash": "admin12"
 }
+
+###
+GET https://terminal.diegohernandezramirez.dev/api/users/session_test
 
 ###
 POST https://terminal.diegohernandezramirez.dev/api/buckets HTTP/1.1
@@ -37,3 +41,21 @@ DELETE http://localhost:5001/api/bins/synpase10a19c1592-d02a-482a-b0be-22f48cdf8
 #   "password": "first1",
 #   "email": "first2.firs2@email.com"
 # }
+
+###
+POST https://final081ffaa5-a19d-4cc9-8de6-1b2b3052e718.terminal.diegohernandezramirez.dev
+
+Content-Type: application/json
+
+{
+  "test": "passed"
+}
+
+###
+POST https://terminal.diegohernandezramirez.dev/api/buckets/share 
+Content-Type: application/json
+
+{
+  "shareUser": "testing",
+  "shareBucket": "admin129ad4264c-7bbb-4a7e-a054-a8997e94c73c"
+}
