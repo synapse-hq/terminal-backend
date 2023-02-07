@@ -59,7 +59,7 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     const subdomain = user.username + uuid();
-    const existingBucket = yield db_1.pg.bucket.findUnique({
+    const existingBucket = yield db_1.pg.bucket.findFirst({
         where: {
             subdomain,
         }
@@ -82,6 +82,70 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (_b) {
         res.status(404).json({ error: "invalid user" });
+    }
+}));
+router.post("/share", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("SHARING ATTEMPT", req.body);
+    if (req.session.user) {
+        const body = req.body;
+        const { shareUser, shareBucket } = body;
+        const user = yield db_1.pg.user.findUnique({
+            where: {
+                username: shareUser,
+            },
+        });
+        if (user.id === req.session.user.id) {
+            res.status(400).json({ error: "You are the owner of this bucket" });
+        }
+        if (!user) {
+            res.status(404).json({ error: "User does not exists" });
+            return;
+        }
+        console.log("USER id", user.id);
+        const bucket = yield db_1.pg.bucket.findFirst({
+            where: {
+                userId: user.id,
+                subdomain: shareBucket,
+                deleted: false,
+            }
+        });
+        console.log("TO SHARE", bucket);
+        if (bucket) {
+            res.status(200).json(bucket);
+        }
+        const bucketOwner = yield db_1.pg.bucket.findFirst({
+            where: {
+                userId: req.session.user.id,
+                subdomain: shareBucket,
+                deleted: false,
+                owner: true,
+            }
+        });
+        if (!bucketOwner) {
+            res.status(401).json({ error: "You are not the owner of this bucket" });
+            return;
+        }
+        try {
+            const sharedBucket = yield db_1.pg.bucket.create({
+                data: {
+                    userId: user.id,
+                    subdomain: shareBucket,
+                    deleted: false,
+                    createdAt: bucketOwner.createdAt,
+                    sharedAt: new Date(),
+                    owner: false,
+                    mainBucketId: bucketOwner.id,
+                }
+            });
+            res.status(200).json(sharedBucket);
+            return;
+        }
+        catch (error) {
+            res.status(500).json({ error: "Something went wrong" });
+        }
+    }
+    else {
+        res.status(401).json({ error: "Must be logged in, possible session timeout" });
     }
 }));
 // set a bucket to deleted

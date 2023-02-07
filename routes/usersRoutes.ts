@@ -11,7 +11,6 @@ type userReqBody = {
 }
 
 router.get('/session_test', async (req : Request, res: Response) => {
-  console.log("REQ SESSION")
 	if (req.session.user) {
     console.log(req.session.user.username)
 		res.status(200).json({username: req.session.user.username})

@@ -22,14 +22,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const vhost = require("vhost");
+const db_1 = require("./src/db");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
+const url_1 = __importDefault(require("url"));
 const port = process.env.PORT;
 const domain = process.env.DOMAIN;
 const subdomain_route_1 = __importDefault(require("./routes/subdomain_route"));
@@ -40,17 +51,23 @@ const RedisStore = require('connect-redis')(session);
 const { createClient } = require('redis');
 let redisClient = createClient({ legacyMode: true });
 redisClient.connect().catch(console.error);
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const app = (0, express_1.default)();
+// app.use(cookieParser())
 // sockets
 const http = __importStar(require("http"));
 const WebSocket = __importStar(require("ws"));
 // sockets
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server, path: "/api/socket/buckets" });
+// const wss = new WebSocket.Server({server, path: "/api/socket/buckets"})
+const bucketWS = new WebSocket.Server({ noServer: true });
+const userSearchWS = new WebSocket.Server({ noServer: true });
+const userSearchInactiveTimeout = 30000;
 // msg queue
 const amqp = require("amqplib/callback_api");
-// when connection established
-wss.on('connection', (ws) => {
+// Bucket websocket connection
+bucketWS.on('connection', (ws) => {
     //function executed when websocket on server receives a message
     ws.on('message', (subdomain) => {
         subdomain = subdomain.toString();
@@ -68,20 +85,15 @@ wss.on('connection', (ws) => {
                 }
                 // create a queueu that will consume from the newly created queue
                 channel.assertQueue(subdomain, {
+                    durable: false,
                     exclusive: false
                 }, function (error2, q) {
                     if (error2) {
                         throw error2;
                     }
-                    channel.assertQueue(subdomain, {
-                        durable: true
-                    });
-                    console.log(" [*] Waiting for messages in %s", q);
                     channel.prefetch(100);
-                    console.log("BOUND to queue");
                     channel.consume(q.queue, function (msg) {
                         if (msg.content) {
-                            console.log("ABOUT TO SEND MSG", JSON.parse(msg.content.toString()));
                             ws.send(msg.content.toString());
                         }
                     }, {
@@ -93,10 +105,53 @@ wss.on('connection', (ws) => {
         });
     });
     ws.on("close", () => {
-        console.log("ws connection closed");
+        console.log("Bucket ws connection closed");
     });
     // initial connection acknowledgement on client and server side
-    console.log("websocket connection established");
+    console.log("Bucket websocket connection established");
+});
+userSearchWS.on('connection', (ws, req) => {
+    const closeWS = () => setTimeout(() => ws.close(), userSearchInactiveTimeout);
+    let closeTimer = closeWS();
+    ws.on('message', (searchBlob) => __awaiter(void 0, void 0, void 0, function* () {
+        clearTimeout(closeTimer);
+        const search = searchBlob.toString();
+        const matches = yield db_1.pg.user.findMany({
+            take: 7,
+            where: {
+                username: {
+                    startsWith: search
+                },
+            },
+            orderBy: {
+                username: 'asc'
+            },
+        });
+        yield ws.send(JSON.stringify(matches));
+        closeTimer = closeWS();
+    }));
+    ws.on('close', () => {
+        console.log('User search WS closed');
+    });
+    console.log("User Search websocket connection established");
+});
+// handle client WebSocket connection initialization
+server.on('upgrade', (req, socket, head) => {
+    const path = url_1.default.parse(req.url).pathname;
+    // WS routes
+    if (path === "/api/socket/buckets") {
+        bucketWS.handleUpgrade(req, socket, head, (ws) => {
+            bucketWS.emit('connection', ws, req);
+        });
+    }
+    else if (path === "/api/socket/user-search") {
+        userSearchWS.handleUpgrade(req, socket, head, (ws) => {
+            userSearchWS.emit('connection', ws, req);
+        });
+    }
+    else {
+        socket.destroy();
+    }
 });
 //
 const cors = require('cors');
@@ -115,6 +170,8 @@ app.use(session({
     secret: "secret",
     store: new RedisStore({ client: redisClient }),
 }));
+app.use(cookieParser());
+app.use(bodyParser());
 app.use(vhost(domain, rootDomainRoutes_1.default));
 app.use(vhost("www." + domain, rootDomainRoutes_1.default));
 app.use(vhost("*." + domain, subdomain_route_1.default));

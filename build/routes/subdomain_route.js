@@ -37,8 +37,6 @@ router.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
     });
-    // PAYLOAD = {rawRequest: {headers, body}}
-    // always returns empty string ??
     let clientIp;
     const ipHeader = req.headers["x-forwarded-for"];
     if (!ipHeader) {
@@ -73,7 +71,7 @@ router.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
                         throw error1;
                     }
                     channel.assertQueue(subdomain, {
-                        durable: true
+                        durable: false
                     });
                     channel.sendToQueue(subdomain, Buffer.from(JSON.stringify(requestToEmit)), {
                         persistent: true
@@ -82,7 +80,7 @@ router.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
             });
             setTimeout(() => {
                 connection.close();
-            }, 2500);
+            }, 25);
         });
     });
     res.status(200).send("request received");

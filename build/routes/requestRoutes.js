@@ -17,10 +17,6 @@ const express_1 = __importDefault(require("express"));
 const db_1 = require("../src/db");
 const db_2 = require("../src/db");
 const router = express_1.default.Router();
-router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const requests = yield db_1.pg.request.findMany({});
-    res.status(200).json(requests);
-}));
 router.get("/:subdomain", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (req.session.user) {
         const bucket = yield db_1.pg.bucket.findFirst({
@@ -30,12 +26,13 @@ router.get("/:subdomain", (req, res) => __awaiter(void 0, void 0, void 0, functi
             }
         });
         if (!bucket) {
-            res.status(400).json({ error: "bucket does not exists" });
+            res.status(404).json({ error: "bucket does not exists or you do not have access" });
             return;
         }
+        const bucketId = bucket.owner ? bucket.id : bucket.mainBucketId;
         let requests = yield db_1.pg.request.findMany({
             where: {
-                bucketId: bucket.id,
+                bucketId,
             }
         });
         try {
@@ -47,15 +44,17 @@ router.get("/:subdomain", (req, res) => __awaiter(void 0, void 0, void 0, functi
                 });
                 return Object.assign(Object.assign({}, request), { rawRequest: payload.rawRequest });
             }));
+            console.log(promises);
             requests = yield Promise.all(promises);
+            console.log("REQS", requests);
             res.status(200).json(requests);
         }
-        catch (_a) {
+        catch (err) {
             res.status(404).json({ error: "failed mongodb queries....." });
         }
     }
     else {
-        res.status(404).json({ error: "not logged in" });
+        res.status(401).json({ error: "You are not logged in" });
     }
 }));
 exports.default = router;

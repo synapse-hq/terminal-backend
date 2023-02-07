@@ -1,5 +1,4 @@
 "use strict";
-// @ts-nocheck
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -13,14 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// @ts-nocheck
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 const db_1 = require("../src/db");
 const bcrypt = require("bcrypt");
-router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield db_1.pg.user.findMany({});
-    res.status(200).json(users);
-}));
 router.get('/session_test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (req.session.user) {
         console.log(req.session.user.username);
