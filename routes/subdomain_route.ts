@@ -66,10 +66,10 @@ router.use(async (req: Request, res: Response, next) => {
             throw error1
           }
           
-          channel.assertQueue(subdomain, {
+          channel.assertExchange(subdomain, 'fanout', {
             durable: false
           });
-          channel.sendToQueue(subdomain, Buffer.from(JSON.stringify(requestToEmit)), {
+          channel.publish(subdomain, '', Buffer.from(JSON.stringify(requestToEmit)), {
             persistent: true
           });
         });
