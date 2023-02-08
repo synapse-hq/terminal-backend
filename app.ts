@@ -46,8 +46,6 @@ bucketWS.on('connection', (ws: WebSocket) => {
   ws.on('message', (subdomain: string) => {
         subdomain = subdomain.toString()
         //log the received message
-        console.log('bucket subdomain: %s', subdomain);
-
         // creating a channel with amqp msg q
         amqp.connect("amqp://diego:password@localhost/RabbitsInParis", function(error0: any, connection: any) {
           if (error0) {
@@ -60,16 +58,19 @@ bucketWS.on('connection', (ws: WebSocket) => {
               throw error1
             }
 
-            // create a queueu that will consume from the newly created queue
-            channel.assertQueue(subdomain, {
+            channel.assertExchange(subdomain, 'fanout', {
               durable: false,
-              exclusive: false
+            })
+            // create a queueu that will consume from the newly created queue
+            channel.assertQueue('', {
+              exclusive: true,
             }, function(error2: any, q: any) {
               if (error2) {
                 throw error2;
               }
 
-              channel.prefetch(100);
+              channel.bindQueue(q.queue, subdomain, '')
+              // channel.prefetch(100);
               
               channel.consume(q.queue, function(msg: any) {
                 if(msg.content) {
